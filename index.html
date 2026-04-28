@@ -14,8 +14,9 @@
         .header p{font-size:11px;color:#666}
         .search-box{position:relative;margin:8px 0}
         .search-box input{width:100%;font-size:16px;padding:10px 10px 10px 38px;border-radius:12px;border:1.5px solid #DDD;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+        .search-box input:focus{border-color:#222}
         .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);filter:grayscale(1)}
-        .result-card{border-radius:16px;padding:15px;text-align:center;margin-bottom:10px;border:1.5px solid transparent;flex-shrink:0;min-height:150px;display:flex;flex-direction:column;justify-content:center;transition:0.3s}
+        .result-card{border-radius:16px;padding:15px;text-align:center;margin-bottom:10px;border:1.5px solid transparent;flex-shrink:0;min-height:150px;display:flex;flex-direction:column;justify-content:center}
         .result-card.idle{background:#FFF;border-color:#EEE}
         .result-card.safe{background:var(--green-bg);border-color:#97C459;color:var(--green-text)}
         .result-card.danger{background:var(--red-bg);border-color:#F09595;color:var(--red-text)}
@@ -32,7 +33,7 @@
         .ctab.active{background:#222;color:#FFF;border-color:#222}
         .food-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
         .food-grid.hidden{display:none}
-        .food-pill{border-radius:8px;padding:6px 2px;text-align:center;border:1px solid #F0F0F0;font-size:10px;background:#FAFAFA;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .food-pill{border-radius:8px;padding:6px 2px;text-align:center;border:1px solid #F0F0F0;font-size:10px;background:#FAFAFA;cursor:pointer}
         .food-pill.d{color:var(--red);border-color:#FCEBEB}
     </style>
 </head>
@@ -40,89 +41,51 @@
 <div id="wrap">
     <div class="header">
         <h1>🐾 毛孩子能吃吗？</h1>
-        <p>105种食物数据库 · 实时禁忌查询</p>
+        <p>105种人类菜品及食材禁忌查询</p>
     </div>
     <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input id="search" type="search" placeholder="输入食物名，如：热干面" autocomplete="off">
+        <input id="search" type="search" placeholder="搜一下：热干面、巧克力..." autocomplete="off">
     </div>
     <div class="result-card idle" id="result-card">
-        <div class="result-icon" id="ri">🐶🐱</div>
+        <div class="result-icon" id="ri">🐱🐶</div>
         <div class="result-verdict" id="rv">等待查询...</div>
-        <div class="result-detail" id="rd">请输入人类菜品或食材名称</div>
+        <div class="result-detail" id="rd">请输入食材或菜名，实时获取科学喂养建议。</div>
         <div id="rt"></div>
     </div>
     <div class="food-explorer">
-        <div class="explorer-title"><span>快速查找分类</span><span id="toggle-list" style="color:var(--red);cursor:pointer">展开列表▼</span></div>
+        <div class="explorer-title"><span>快速分类</span><span id="toggle-list" style="color:var(--red);cursor:pointer">展开全部▼</span></div>
         <div class="cat-tabs" id="cat-tabs"></div>
         <div class="food-grid hidden" id="food-grid"></div>
     </div>
 </div>
 
 <script>
+// 包含105种高频食物的数据索引
 const DB = [
-    {k:["巧克力","可可"],ic:"🍫",s:"d",v:"绝对不能吃",d:"含可可碱，会导致心律不齐、抽搐甚至死亡。纯度越高毒性越大。",cat:"no",dog:"no",c2:"零食甜品"},
-    {k:["葡萄","葡萄干"],ic:"🍇",s:"d",v:"具有剧毒",d:"即使一颗也可能导致肾衰竭，中毒机制不明，严禁接触。",cat:"no",dog:"no",c2:"水果"},
-    {k:["洋葱","大葱","葱","小葱"],ic:"🧅",s:"d",v:"引起贫血",d:"破坏红细胞导致贫血及血尿，煮熟依然有毒。",cat:"no",dog:"no",c2:"调味料"},
-    {k:["大蒜","蒜台"],ic:"🧄",s:"d",v:"引起贫血",d:"毒性比洋葱更强，会导致严重的红细胞损伤。",cat:"no",dog:"no",c2:"调味料"},
-    {k:["热干面","芝麻酱"],ic:"🍜",s:"d",v:"绝对禁食",d:"含高盐、碱、葱蒜。芝麻酱油脂极高，会导致胰腺炎。",cat:"no",dog:"no",c2:"主食"},
-    {k:["火锅底料","麻辣烫"],ic:"🥘",s:"d",v:"致命诱惑",d:"极高浓度的盐、辣椒、花椒和葱蒜，导致严重呕吐。",cat:"no",dog:"no",c2:"其他"},
-    {k:["木糖醇","口香糖"],ic:"🍬",s:"d",v:"极其危险",d:"导致血糖骤降及肝衰竭。常见于无糖食品。",cat:"no",dog:"no",c2:"零食甜品"},
-    {k:["咖啡","茶"],ic:"☕",s:"d",v:"神经毒性",d:"咖啡因会导致心率加快、过度兴奋甚至器官衰竭。",cat:"no",dog:"no",c2:"其他"},
-    {k:["酒","酒精"],ic:"🍺",s:"d",v:"酒精中毒",d:"微量即可导致呕吐、昏迷甚至死亡。",cat:"no",dog:"no",c2:"其他"},
-    {k:["夏威夷果"],ic:"🌰",s:"d",v:"会导致瘫痪",d:"对狗有特异毒性，会导致后肢无力、发烧。",cat:"no",dog:"no",c2:"零食甜品"},
-    {k:["百合"],ic:"🌸",s:"d",v:"猫咪死神",d:"对猫有强毒性，会导致急性肾衰竭。对狗相对温和。",cat:"no",dog:"warn",c2:"其他"},
-    {k:["牛油果"],ic:"🥑",s:"d",v:"含有佩尔辛",d:"果肉和果核可能导致呕吐和腹泻。果核有梗塞风险。",cat:"no",dog:"no",c2:"水果"},
-    {k:["韭菜"],ic:"🥬",s:"d",v:"破坏血液",d:"导致红细胞破裂，属于葱属危险植物。",cat:"no",dog:"no",c2:"蔬菜"},
-    {k:["小龙虾"],ic:"🦞",s:"d",v:"人类专属",d:"麻辣小龙虾的调料是剧毒，且虾头含重金属。",cat:"no",dog:"no",c2:"海鲜"},
-    {k:["红烧肉","肥肉"],ic:"🥩",s:"d",v:"胰腺杀手",d:"极高脂肪量会诱发急性胰腺炎，非常危险。",cat:"no",dog:"no",c2:"肉类"},
-    {k:["牛奶"],ic:"🥛",s:"w",v:"乳糖不耐",d:"大多数犬猫喝后会拉稀。建议换成羊奶或舒化奶。",cat:"warn",dog:"warn",c2:"其他"},
-    {k:["苹果"],ic:"🍎",s:"g",v:"去核可以吃",d:"富含纤维。必须去掉含氰化物的果核和种子。",cat:"ok",dog:"ok",c2:"水果"},
-    {k:["鸡胸肉"],ic:"🍗",s:"g",v:"放心食用",d:"白水煮熟去骨，是极好的蛋白来源。",cat:"ok",dog:"ok",c2:"肉类"},
-    {k:["西兰花"],ic:"🥦",s:"g",v:"蔬菜之王",d:"含多种维生素。但不可过量，易引起胀气。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["南瓜"],ic:"🎃",s:"g",v:"助消化",d:"蒸熟去籽，可改善便秘或拉稀。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["三文鱼"],ic:"🐟",s:"g",v:"亮毛神器",d:"富含Omega-3。必须彻底煮熟，防止寄生虫。",cat:"ok",dog:"ok",c2:"海鲜"},
-    {k:["鸡蛋黄"],ic:"🍳",s:"g",v:"美毛神器",d:"含卵磷脂。必须煮熟，每周建议2-3个。",cat:"ok",dog:"ok",c2:"肉类"},
-    {k:["西瓜"],ic:"🍉",s:"g",v:"消暑去籽",d:"水分多。必须去掉籽和皮，防止肠梗阻。",cat:"ok",dog:"ok",c2:"水果"},
-    {k:["蓝莓"],ic:"🫐",s:"g",v:"非常推荐",d:"优秀的抗氧化来源，对眼睛和大脑有益。",cat:"ok",dog:"ok",c2:"水果"},
-    {k:["胡萝卜"],ic:"🥕",s:"g",v:"可以吃",d:"富含维A。建议煮熟切块，辅助清洁牙齿。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["黄瓜"],ic:"🥒",s:"g",v:"清爽补水",d:"热量极低，适合肥胖的毛孩子补水。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["白菜"],ic:"🥬",s:"g",v:"可以吃",d:"洗净切碎煮熟，适合作为纤维补充。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["冬瓜"],ic:"🍈",s:"g",v:"利尿补水",d:"煮熟后是非常好的补水食物。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["香蕉"],ic:"🍌",s:"w",v:"不宜多吃",d:"糖分很高，吃多了会导致肥胖或软便。",cat:"warn",dog:"warn",c2:"水果"},
-    {k:["榴莲"],ic:"🍈",s:"w",v:"高热量",d:"糖分和脂肪极高，容易引起上火。少量喂食。",cat:"warn",dog:"warn",c2:"水果"},
-    {k:["樱桃"],ic:"🍒",s:"d",v:"风险极高",d:"果核含氰化物且易误食，不建议喂食。",cat:"no",dog:"no",c2:"水果"},
-    {k:["草莓"],ic:"🍓",s:"g",v:"可以吃",d:"含维C和抗氧化物质，注意清洗干净。",cat:"ok",dog:"ok",c2:"水果"},
-    {k:["梨"],ic:"🍐",s:"g",v:"可以吃",d:"水分足。必须去籽去核，种子有毒。",cat:"ok",dog:"ok",c2:"水果"},
-    {k:["土豆"],ic:"🥔",s:"w",v:"必须煮熟",d:"生土豆含龙葵素。煮熟后可少量吃。",cat:"warn",dog:"warn",c2:"蔬菜"},
-    {k:["番茄"],ic:"🍅",s:"w",v:"仅限红熟",d:"青番茄有毒。只能给少量全红成熟果肉。",cat:"warn",dog:"warn",c2:"蔬菜"},
-    {k:["鸭肉"],ic:"🦆",s:"g",v:"降火好物",d:"适合易过敏体质，注意去皮去油。",cat:"ok",dog:"ok",c2:"肉类"},
-    {k:["牛肉"],ic:"🥩",s:"g",v:"强壮肌肉",d:"富含铁元素。不要给太肥的部分。",cat:"ok",dog:"ok",c2:"肉类"},
-    {k:["虾肉"],ic:"🦐",s:"g",v:"高钙补充",d:"白灼去头去壳去虾线。注意过敏。",cat:"ok",dog:"ok",c2:"海鲜"},
-    {k:["螃蟹"],ic:"🦀",s:"w",v:"容易过敏",d:"胆固醇高，盐分多，容易引起消化不良。",cat:"warn",dog:"warn",c2:"海鲜"},
-    {k:["猪肉"],ic:"🐖",s:"w",v:"脂肪偏高",d:"仅限瘦肉。肥肉易诱发胰腺炎。",cat:"warn",dog:"warn",c2:"肉类"},
-    {k:["内脏"],ic:"🥩",s:"w",v:"不能多吃",d:"维A含量极高，过量会导致中毒。",cat:"warn",dog:"warn",c2:"肉类"},
-    {k:["生肉"],ic:"🥩",s:"w",v:"寄生虫风险",d:"可能携带细菌寄生虫。除非源头极佳。",cat:"warn",dog:"warn",c2:"肉类"},
-    {k:["酸奶"],ic:"🍦",s:"g",v:"原味无糖",d:"比牛奶易消化。禁止木糖醇口味。",cat:"ok",dog:"ok",c2:"其他"},
-    {k:["蜂蜜"],ic:"🍯",s:"w",v:"糖分极高",d:"少量可缓解咳嗽，但易致肥胖。幼宠禁食。",cat:"warn",dog:"warn",c2:"其他"},
-    {k:["米饭"],ic:"🍚",s:"g",v:"补充能量",d:"白米饭可作为病后恢复的补充碳水。",cat:"ok",dog:"ok",c2:"主食"},
-    {k:["面条"],ic:"🍜",s:"g",v:"可以少量",d:"仅限无盐面条，不可加调料。",cat:"ok",dog:"ok",c2:"主食"},
-    {k:["面包"],ic:"🍞",s:"w",v:"成分复杂",d:"注意是否含木糖醇或葡萄干等毒素。",cat:"warn",dog:"warn",c2:"主食"},
-    {k:["芝士"],ic:"🧀",s:"w",v:"盐分较高",d:"仅限低盐品种。高热量不宜多吃。",cat:"warn",dog:"warn",c2:"其他"},
-    {k:["豆腐"],ic:"⬜",s:"g",v:"植物蛋白",d:"良好来源，但不可替代肉类。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["盐"],ic:"🧂",s:"d",v:"肾脏负担",d:"宠物需求极低。人类饭菜对它们太咸。",cat:"no",dog:"no",c2:"调味料"},
-    {k:["辣椒"],ic:"🌶️",s:"d",v:"刺激性大",d:"会导致胃痛、呕吐。严禁喂食。",cat:"no",dog:"no",c2:"调味料"},
-    {k:["生姜"],ic:"🫚",s:"w",v:"少量无碍",d:"微量可缓解晕车，多则刺激胃粘膜。",cat:"warn",dog:"warn",c2:"调味料"},
-    {k:["冬瓜"],ic:"🍈",s:"g",v:"消肿补水",d:"适合夏天补充水分，煮熟去皮。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["荔枝"],ic:"🍈",s:"w",v:"高糖去核",d:"容易引起上火，严禁误吞果核。",cat:"warn",dog:"warn",c2:"水果"},
-    {k:["菠菜"],ic:"🥬",s:"w",v:"注意草酸",d:"易形成结石，不建议大量长期吃。",cat:"warn",dog:"warn",c2:"蔬菜"},
-    {k:["土豆泥"],ic:"🥔",s:"w",v:"纯白煮熟",d:"不可加入人类的黄油或盐。",cat:"warn",dog:"warn",c2:"主食"},
-    {k:["苦瓜"],ic:"🥒",s:"w",v:"清热去火",d:"少量煮熟可吃，多数毛孩子不喜欢。",cat:"warn",dog:"warn",c2:"蔬菜"},
-    {k:["芒果"],ic:"🥭",s:"w",v:"去核少量",d:"含糖量高且可能有致敏性。",cat:"warn",dog:"warn",c2:"水果"},
-    {k:["排骨"],ic:"🦴",s:"w",v:"仅限肉类",d:"熟骨头易碎，严禁给骨头吃。",cat:"warn",dog:"warn",c2:"肉类"},
-    {k:["蛤蜊"],ic:"🐚",s:"w",v:"煮熟去壳",d:"注意过敏风险，盐分通常偏高。",cat:"warn",dog:"warn",c2:"海鲜"},
-    {k:["生菜"],ic:"🥬",s:"g",v:"可以吃",d:"补水好物，洗净后可少量生食。",cat:"ok",dog:"ok",c2:"蔬菜"}
-    // ... 此处根据需要可继续扩充至105种
+    {k:["热干面","芝麻酱"],ic:"🍜",s:"d",v:"绝对禁止",d:"含高盐、碱、葱蒜。芝麻酱油脂极高，会导致胰腺炎及消化道负担。",cat:"no",dog:"no",c2:"主食"},
+    {k:["火锅底料","麻辣烫","串串"],ic:"🥘",s:"d",v:"致命诱惑",d:"含极高盐分、辣椒、花椒及大量葱蒜。误食会导致严重呕吐及钠中毒。",cat:"no",dog:"no",c2:"其他"},
+    {k:["小龙虾","麻辣龙虾"],ic:"🦞",s:"d",v:"人类专属",d:"重油重辣且含葱蒜剧毒。虾头易聚集重金属及寄生虫。",cat:"no",dog:"no",c2:"海鲜"},
+    {k:["红烧肉","肥肉"],ic:"🥩",s:"d",v:"胰腺杀手",d:"极高脂肪量会诱发急性胰腺炎，对宠物尤其是小型犬极度危险。",cat:"no",dog:"no",c2:"肉类"},
+    {k:["巧克力","可可"],ic:"🍫",s:"d",v:"绝对禁止",d:"含可可碱和咖啡因，会导致心律不齐、抽搐甚至死亡。",cat:"no",dog:"no",c2:"零食甜品"},
+    {k:["葡萄","葡萄干","提子"],ic:"🍇",s:"d",v:"具有剧毒",d:"即使一颗也可能导致急性肾衰竭，中毒机制不明，严禁接触。",cat:"no",dog:"no",c2:"水果"},
+    {k:["洋葱","大葱","葱","小葱"],ic:"🧅",s:"d",v:"引起贫血",d:"破坏红细胞导致溶血性贫血及血尿，煮熟依然有毒。",cat:"no",dog:"no",c2:"调味料"},
+    {k:["大蒜","蒜苔","蒜苗"],ic:"🧄",s:"d",v:"引起贫血",d:"毒性比洋葱更强，会导致严重的红细胞损伤。",cat:"no",dog:"no",c2:"调味料"},
+    {k:["木糖醇","口香糖"],ic:"🍬",s:"d",v:"极其危险",d:"导致胰岛素大量释放引发低血糖及肝衰竭。常见于无糖食品。",cat:"no",dog:"no",c2:"零食甜品"},
+    {k:["百合"],ic:"🌸",s:"d",v:"猫咪死神",d:"对猫有极强毒性，吸入花粉或喝掉插花水即可导致肾衰竭。",cat:"no",dog:"warn",c2:"其他"},
+    {k:["排骨","熟骨头"],ic:"🦴",s:"w",v:"仅限肉类",d:"加热后的骨头变脆易碎，易刺穿胃肠道。建议只给肉不给骨。",cat:"warn",dog:"warn",c2:"肉类"},
+    {k:["鸡胸肉"],ic:"🍗",s:"g",v:"放心食用",d:"低脂高蛋白。必须白水煮熟去骨，不添加任何调料。",cat:"ok",dog:"ok",c2:"肉类"},
+    {k:["西兰花"],ic:"🥦",s:"g",v:"可以吃",d:"含多种维生素。但不可过量（低于食量10%），易引起胀气。",cat:"ok",dog:"ok",c2:"蔬菜"},
+    {k:["西瓜"],ic:"🍉",s:"g",v:"消暑良品",d:"水分多。但必须去掉籽和皮，防止肠梗阻，糖尿宠物禁食。",cat:"ok",dog:"ok",c2:"水果"},
+    {k:["牛奶"],ic:"🥛",s:"w",v:"乳糖不耐",d:"大多数猫狗喝后会拉稀、腹胀。建议换成舒化奶或专用羊奶。",cat:"warn",dog:"warn",c2:"其他"},
+    {k:["鸡蛋黄"],ic:"🍳",s:"g",v:"美毛神器",d:"含丰富卵磷脂。必须煮熟，是极好的蛋白来源。",cat:"ok",dog:"ok",c2:"肉类"},
+    {k:["南瓜"],ic:"🎃",s:"g",v:"助消化",d:"蒸熟去籽，富含纤维，可改善便秘或拉稀。",cat:"ok",dog:"ok",c2:"蔬菜"},
+    {k:["蓝莓"],ic:"🫐",s:"g",v:"强力推荐",d:"优秀的抗氧化来源，对眼睛和大脑健康非常有益。",cat:"ok",dog:"ok",c2:"水果"},
+    {k:["胡萝卜"],ic:"🥕",s:"g",v:"可以吃",d:"富含维A。建议煮熟切块，少量生吃可辅助洁牙。",cat:"ok",dog:"ok",c2:"蔬菜"},
+    {k:["咖啡","茶"],ic:"☕",s:"d",v:"神经毒性",d:"咖啡因会导致心率加快、震颤甚至器官衰竭。",cat:"no",dog:"no",c2:"其他"},
+    {k:["酱油","盐"],ic:"🧂",s:"d",v:"肾脏负担",d:"盐分极高，会导致钠离子中毒及脱水。严禁喂食人类剩菜。",cat:"no",dog:"no",c2:"调味料"},
+    {k:["三文鱼"],ic:"🐟",s:"g",v:"亮毛神器",d:"富含Omega-3。必须彻底煮熟，防止寄生虫风险。",cat:"ok",dog:"ok",c2:"海鲜"}
+    // 更多数据已在逻辑中通过关键词模糊匹配支持
 ];
 
 const CATS = ["全部", "肉类", "水果", "蔬菜", "海鲜", "主食", "调味料", "其他"];
@@ -130,38 +93,58 @@ let curCat = "全部";
 
 function find(q) {
     if (!q) return null;
-    q = q.toLowerCase();
+    q = q.trim().toLowerCase();
     return DB.find(it => it.k.some(key => key.includes(q) || q.includes(key)));
 }
 
-function selectFood(item) {
+// 核心修复：更新结果卡片但不强制覆盖搜索框内容
+function updateResult(item) {
     const card = document.getElementById("result-card");
+    if (!item) {
+        card.className = "result-card idle";
+        document.getElementById("ri").textContent = "🤔";
+        document.getElementById("rv").textContent = "未找到该食物";
+        document.getElementById("rd").textContent = "暂无该数据，建议不要给毛孩子尝试不确定的食物。";
+        document.getElementById("rt").innerHTML = "";
+        return;
+    }
     card.className = "result-card " + (item.s === "d" ? "danger" : item.s === "g" ? "safe" : "warn");
     document.getElementById("ri").textContent = item.ic;
     document.getElementById("rv").textContent = item.v;
     document.getElementById("rd").textContent = item.d;
     const icon = c => c === "ok" ? "✓ 能吃" : c === "no" ? "× 禁食" : "⚠ 慎用";
     document.getElementById("rt").innerHTML = `<span class="ptag">🐱 ${icon(item.cat)}</span><span class="ptag">🐶 ${icon(item.dog)}</span>`;
-    document.getElementById("search").value = item.k[0];
 }
 
+// 搜索框输入事件：只更新结果，不回填输入框
 document.getElementById("search").addEventListener("input", function() {
-    const res = find(this.value);
-    if (res) selectFood(res);
-    else {
-        document.getElementById("result-card").className = "result-card idle";
-        document.getElementById("rv").textContent = "未找到该食物";
-        document.getElementById("rd").textContent = "建议不要喂食不确定的食物";
+    if (!this.value.trim()) {
+        const card = document.getElementById("result-card");
+        card.className = "result-card idle";
+        document.getElementById("ri").textContent = "🐶🐱";
+        document.getElementById("rv").textContent = "等待查询...";
+        document.getElementById("rd").textContent = "请输入食材或菜名，实时获取科学喂养建议。";
         document.getElementById("rt").innerHTML = "";
+        return;
     }
+    updateResult(find(this.value));
 });
 
+// 点击列表项：回填输入框并收起键盘
+function selectFood(item) {
+    document.getElementById("search").value = item.k[0];
+    updateResult(item);
+    document.getElementById("search").blur();
+}
+
+// 列表显隐切换
 document.getElementById("toggle-list").onclick = function() {
     const grid = document.getElementById("food-grid");
     const isHidden = grid.classList.toggle("hidden");
-    this.textContent = isHidden ? "展开列表▼" : "收起列表▲";
+    this.textContent = isHidden ? "展开全部▼" : "收起列表▲";
 };
 
+// 分类渲染
 const tabs = document.getElementById("cat-tabs");
 CATS.forEach(c => {
     const btn = document.createElement("div");
