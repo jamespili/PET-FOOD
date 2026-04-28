@@ -189,7 +189,45 @@ function selectFood(item) {
     document.getElementById("search").value = item.k[0];
 }
 
+// 1. 封装一个重置卡片的函数，方便复用
+function resetCard() {
+    const card = document.getElementById("result-card");
+    card.className = "result-card idle";
+    document.getElementById("ri").textContent = "🐶🐱";
+    document.getElementById("rv").textContent = "等待查询...";
+    document.getElementById("rd").textContent = "请输入人类菜品或食材名称";
+    document.getElementById("rt").innerHTML = "";
+}
+
+// 2. 监听 input 事件（处理打字和删除）
 document.getElementById("search").addEventListener("input", function() {
+    const val = this.value.trim();
+    
+    // 如果输入框为空，直接重置并返回
+    if (!val) {
+        resetCard();
+        return;
+    }
+    
+    const res = find(val);
+    if (res) {
+        selectFood(res);
+    } else {
+        // 搜索不到时的状态
+        const card = document.getElementById("result-card");
+        card.className = "result-card idle";
+        document.getElementById("rv").textContent = "未找到该食物";
+        document.getElementById("rd").textContent = "建议不要喂食不确定的食物";
+        document.getElementById("rt").innerHTML = "";
+    }
+});
+
+// 3. 关键：监听 search 事件（专门处理点击搜索框自带的“清除”小叉叉）
+document.getElementById("search").addEventListener("search", function() {
+    if (this.value === "") {
+        resetCard();
+    }
+}); {
     const val = this.value.trim();
     if (!val) {
         document.getElementById("result-card").className = "result-card idle";
