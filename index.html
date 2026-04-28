@@ -9,48 +9,33 @@
         :root{--red:#E24B4A;--red-bg:#FCEBEB;--red-text:#791F1F;--green:#3B6D11;--green-bg:#EAF3DE;--green-text:#27500A;--amber:#BA7517;--amber-bg:#FAEEDA;--amber-text:#633806;--font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
         body{background:#F9F9F9;font-family:var(--font-sans);height:100vh;overflow:hidden}
         #wrap{width:100%;max-width:420px;margin:0 auto;padding:10px;height:100vh;display:flex;flex-direction:column}
-        .header{text-align:center;padding:5px 0}
-        .header h1{font-size:18px;font-weight:600}
-        .header p{font-size:11px;color:#666}
+        .header{text-align:center;padding:5px 0}.header h1{font-size:18px}.header p{font-size:11px;color:#666}
         .search-box{position:relative;margin:8px 0}
         .search-box input{width:100%;font-size:16px;padding:10px 10px 10px 38px;border-radius:12px;border:1.5px solid #DDD;outline:none;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
-        .search-box input:focus{border-color:#222}
         .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);filter:grayscale(1)}
         .result-card{border-radius:16px;padding:15px;text-align:center;margin-bottom:10px;border:1.5px solid transparent;flex-shrink:0;min-height:150px;display:flex;flex-direction:column;justify-content:center}
-        .result-card.idle{background:#FFF;border-color:#EEE}
-        .result-card.safe{background:var(--green-bg);border-color:#97C459;color:var(--green-text)}
-        .result-card.danger{background:var(--red-bg);border-color:#F09595;color:var(--red-text)}
-        .result-card.warn{background:var(--amber-bg);border-color:#EF9F27;color:var(--amber-text)}
-        .result-icon{font-size:36px;margin-bottom:2px}
-        .result-verdict{font-size:18px;font-weight:bold;margin-bottom:2px}
-        .result-detail{font-size:12px;line-height:1.4;text-align:left}
+        .result-card.idle{background:#FFF;border-color:#EEE}.result-card.safe{background:var(--green-bg);border-color:#97C459;color:var(--green-text)}
+        .result-card.danger{background:var(--red-bg);border-color:#F09595;color:var(--red-text)}.result-card.warn{background:var(--amber-bg);border-color:#EF9F27;color:var(--amber-text)}
+        .result-icon{font-size:36px;margin-bottom:2px}.result-verdict{font-size:18px;font-weight:bold}.result-detail{font-size:12px;line-height:1.4;text-align:left}
         .ptag{font-size:10px;padding:3px 6px;border-radius:6px;font-weight:600;background:rgba(255,255,255,0.6);margin-top:5px;display:inline-block;border:1px solid currentColor;margin-right:4px}
         .food-explorer{flex:1;overflow-y:auto;background:#FFF;border-radius:15px 15px 0 0;padding:12px;box-shadow:0 -4px 10px rgba(0,0,0,0.03)}
         .explorer-title{font-size:12px;font-weight:bold;margin-bottom:8px;color:#888;display:flex;justify-content:space-between}
-        .cat-tabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
-        .cat-tabs::-webkit-scrollbar{display:none}
+        .cat-tabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}.cat-tabs::-webkit-scrollbar{display:none}
         .ctab{flex-shrink:0;padding:5px 10px;border-radius:8px;border:1px solid #EEE;background:#F5F5F5;font-size:11px;cursor:pointer}
         .ctab.active{background:#222;color:#FFF;border-color:#222}
-        .food-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
-        .food-grid.hidden{display:none}
-        .food-pill{border-radius:8px;padding:6px 2px;text-align:center;border:1px solid #F0F0F0;font-size:10px;background:#FAFAFA;cursor:pointer}
+        .food-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}.food-grid.hidden{display:none}
+        .food-pill{border-radius:8px;padding:6px 2px;text-align:center;border:1px solid #F0F0F0;font-size:10px;background:#FAFAFA;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .food-pill.d{color:var(--red);border-color:#FCEBEB}
     </style>
 </head>
 <body>
 <div id="wrap">
-    <div class="header">
-        <h1>🐾 毛孩子能吃吗？</h1>
-        <p>105种人类菜品及食材禁忌查询</p>
-    </div>
-    <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input id="search" type="search" placeholder="搜一下：热干面、巧克力..." autocomplete="off">
-    </div>
+    <div class="header"><h1>🐾 毛孩子能吃吗？</h1><p>105种食物百科 · 实时禁忌查询</p></div>
+    <div class="search-box"><span class="search-icon">🔍</span><input id="search" type="search" placeholder="热干面、巧克力、苹果..." autocomplete="off"></div>
     <div class="result-card idle" id="result-card">
         <div class="result-icon" id="ri">🐱🐶</div>
         <div class="result-verdict" id="rv">等待查询...</div>
-        <div class="result-detail" id="rd">请输入食材或菜名，实时获取科学喂养建议。</div>
+        <div class="result-detail" id="rd">请输入食材或人类菜名，实时获取科学建议。</div>
         <div id="rt"></div>
     </div>
     <div class="food-explorer">
@@ -59,36 +44,60 @@
         <div class="food-grid hidden" id="food-grid"></div>
     </div>
 </div>
-
 <script>
-// 包含105种高频食物的数据索引
 const DB = [
-    {k:["热干面","芝麻酱"],ic:"🍜",s:"d",v:"绝对禁止",d:"含高盐、碱、葱蒜。芝麻酱油脂极高，会导致胰腺炎及消化道负担。",cat:"no",dog:"no",c2:"主食"},
-    {k:["火锅底料","麻辣烫","串串"],ic:"🥘",s:"d",v:"致命诱惑",d:"含极高盐分、辣椒、花椒及大量葱蒜。误食会导致严重呕吐及钠中毒。",cat:"no",dog:"no",c2:"其他"},
-    {k:["小龙虾","麻辣龙虾"],ic:"🦞",s:"d",v:"人类专属",d:"重油重辣且含葱蒜剧毒。虾头易聚集重金属及寄生虫。",cat:"no",dog:"no",c2:"海鲜"},
-    {k:["红烧肉","肥肉"],ic:"🥩",s:"d",v:"胰腺杀手",d:"极高脂肪量会诱发急性胰腺炎，对宠物尤其是小型犬极度危险。",cat:"no",dog:"no",c2:"肉类"},
-    {k:["巧克力","可可"],ic:"🍫",s:"d",v:"绝对禁止",d:"含可可碱和咖啡因，会导致心律不齐、抽搐甚至死亡。",cat:"no",dog:"no",c2:"零食甜品"},
-    {k:["葡萄","葡萄干","提子"],ic:"🍇",s:"d",v:"具有剧毒",d:"即使一颗也可能导致急性肾衰竭，中毒机制不明，严禁接触。",cat:"no",dog:"no",c2:"水果"},
-    {k:["洋葱","大葱","葱","小葱"],ic:"🧅",s:"d",v:"引起贫血",d:"破坏红细胞导致溶血性贫血及血尿，煮熟依然有毒。",cat:"no",dog:"no",c2:"调味料"},
-    {k:["大蒜","蒜苔","蒜苗"],ic:"🧄",s:"d",v:"引起贫血",d:"毒性比洋葱更强，会导致严重的红细胞损伤。",cat:"no",dog:"no",c2:"调味料"},
-    {k:["木糖醇","口香糖"],ic:"🍬",s:"d",v:"极其危险",d:"导致胰岛素大量释放引发低血糖及肝衰竭。常见于无糖食品。",cat:"no",dog:"no",c2:"零食甜品"},
-    {k:["百合"],ic:"🌸",s:"d",v:"猫咪死神",d:"对猫有极强毒性，吸入花粉或喝掉插花水即可导致肾衰竭。",cat:"no",dog:"warn",c2:"其他"},
-    {k:["排骨","熟骨头"],ic:"🦴",s:"w",v:"仅限肉类",d:"加热后的骨头变脆易碎，易刺穿胃肠道。建议只给肉不给骨。",cat:"warn",dog:"warn",c2:"肉类"},
-    {k:["鸡胸肉"],ic:"🍗",s:"g",v:"放心食用",d:"低脂高蛋白。必须白水煮熟去骨，不添加任何调料。",cat:"ok",dog:"ok",c2:"肉类"},
-    {k:["西兰花"],ic:"🥦",s:"g",v:"可以吃",d:"含多种维生素。但不可过量（低于食量10%），易引起胀气。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["西瓜"],ic:"🍉",s:"g",v:"消暑良品",d:"水分多。但必须去掉籽和皮，防止肠梗阻，糖尿宠物禁食。",cat:"ok",dog:"ok",c2:"水果"},
-    {k:["牛奶"],ic:"🥛",s:"w",v:"乳糖不耐",d:"大多数猫狗喝后会拉稀、腹胀。建议换成舒化奶或专用羊奶。",cat:"warn",dog:"warn",c2:"其他"},
-    {k:["鸡蛋黄"],ic:"🍳",s:"g",v:"美毛神器",d:"含丰富卵磷脂。必须煮熟，是极好的蛋白来源。",cat:"ok",dog:"ok",c2:"肉类"},
-    {k:["南瓜"],ic:"🎃",s:"g",v:"助消化",d:"蒸熟去籽，富含纤维，可改善便秘或拉稀。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["蓝莓"],ic:"🫐",s:"g",v:"强力推荐",d:"优秀的抗氧化来源，对眼睛和大脑健康非常有益。",cat:"ok",dog:"ok",c2:"水果"},
-    {k:["胡萝卜"],ic:"🥕",s:"g",v:"可以吃",d:"富含维A。建议煮熟切块，少量生吃可辅助洁牙。",cat:"ok",dog:"ok",c2:"蔬菜"},
-    {k:["咖啡","茶"],ic:"☕",s:"d",v:"神经毒性",d:"咖啡因会导致心率加快、震颤甚至器官衰竭。",cat:"no",dog:"no",c2:"其他"},
-    {k:["酱油","盐"],ic:"🧂",s:"d",v:"肾脏负担",d:"盐分极高，会导致钠离子中毒及脱水。严禁喂食人类剩菜。",cat:"no",dog:"no",c2:"调味料"},
-    {k:["三文鱼"],ic:"🐟",s:"g",v:"亮毛神器",d:"富含Omega-3。必须彻底煮熟，防止寄生虫风险。",cat:"ok",dog:"ok",c2:"海鲜"}
-    // 更多数据已在逻辑中通过关键词模糊匹配支持
+    // 危险/禁止 (d)
+    {k:["热干面","芝麻酱"],ic:"🍜",s:"d",v:"绝对禁止",d:"含盐、碱、葱蒜。芝麻酱油脂极高，易发胰腺炎。",cat:"no",dog:"no",c2:"主食"},
+    {k:["火锅底料","麻辣烫","串串"],ic:"🥘",s:"d",v:"致命诱惑",d:"极高盐、辣、花椒及葱蒜。会导致严重呕吐中毒。",cat:"no",dog:"no",c2:"其他"},
+    {k:["小龙虾","麻小"],ic:"🦞",s:"d",v:"人类专属",d:"调料含葱蒜辣椒剧毒，虾头含重金属寄生虫。",cat:"no",dog:"no",c2:"海鲜"},
+    {k:["巧克力","可可"],ic:"🍫",s:"d",v:"绝对禁止",d:"含可可碱，会导致心律不齐、抽搐甚至死亡。",cat:"no",dog:"no",c2:"零食"},
+    {k:["葡萄","葡萄干"],ic:"🍇",s:"d",v:"具有剧毒",d:"会导致急性肾衰竭，中毒机制不明，一颗也危险。",cat:"no",dog:"no",c2:"水果"},
+    {k:["洋葱","葱","小葱"],ic:"🧅",s:"d",v:"引起贫血",d:"破坏红细胞导致溶血，煮熟依然有毒。",cat:"no",dog:"no",c2:"调味"},
+    {k:["大蒜","蒜苔"],ic:"🧄",s:"d",v:"引起贫血",d:"毒性比洋葱更强，导致红细胞损伤。",cat:"no",dog:"no",c2:"调味"},
+    {k:["木糖醇","口香糖"],ic:"🍬",s:"d",v:"极其危险",d:"导致血糖骤降及肝衰竭，常见于无糖食品。",cat:"no",dog:"no",c2:"零食"},
+    {k:["红烧肉","肥肉"],ic:"🥩",s:"d",v:"胰腺杀手",d:"极高脂肪诱发胰腺炎，对小宠物致命。",cat:"no",dog:"no",c2:"肉类"},
+    {k:["酒精","酒"],ic:"🍺",s:"d",v:"酒精中毒",d:"微量即可导致呕吐、昏迷甚至死亡。",cat:"no",dog:"no",c2:"其他"},
+    {k:["咖啡","茶"],ic:"☕",s:"d",v:"神经毒性",d:"咖啡因导致心率快、震颤、器官衰竭。",cat:"no",dog:"no",c2:"其他"},
+    {k:["百合"],ic:"🌸",s:"d",v:"猫咪死神",d:"对猫极毒，吸入花粉即可导致肾衰竭。",cat:"no",dog:"warn",c2:"其他"},
+    {k:["夏威夷果"],ic:"🌰",s:"d",v:"导致瘫痪",d:"对狗有特异毒性，致无力、发烧。",cat:"no",dog:"no",c2:"零食"},
+    {k:["韭菜"],ic:"🥬",s:"d",v:"破坏血液",d:"导致红细胞破裂，严禁喂食。",cat:"no",dog:"no",c2:"蔬菜"},
+    {k:["酱油","盐"],ic:"🧂",s:"d",v:"肾脏负担",d:"高盐导致钠中毒脱水。禁喂剩菜。",cat:"no",dog:"no",c2:"调味"},
+    {k:["辣椒"],ic:"🌶️",s:"d",v:"刺激剧烈",d:"导致胃痛呕吐，损伤味觉。",cat:"no",dog:"no",c2:"调味"},
+    
+    // 安全/推荐 (g)
+    {k:["鸡胸肉"],ic:"🍗",s:"g",v:"放心食用",d:"低脂高蛋白。必须白煮去骨。",cat:"ok",dog:"ok",c2:"肉类"},
+    {k:["西兰花"],ic:"🥦",s:"g",v:"蔬菜之王",d:"含多种维生素，但不可过量。",cat:"ok",dog:"ok",c2:"蔬菜"},
+    {k:["南瓜"],ic:"🎃",s:"g",v:"助消化",d:"蒸熟去籽，改善便秘或拉稀。",cat:"ok",dog:"ok",c2:"蔬菜"},
+    {k:["苹果"],ic:"🍎",s:"g",v:"去核能吃",d:"富含纤维，必须去掉有毒果核。",cat:"ok",dog:"ok",c2:"水果"},
+    {k:["西瓜"],ic:"🍉",s:"g",v:"消暑去籽",d:"补水好，必须去皮去籽。",cat:"ok",dog:"ok",c2:"水果"},
+    {k:["蓝莓"],ic:"🫐",s:"g",v:"非常推荐",d:"优秀抗氧化，对眼脑有益。",cat:"ok",dog:"ok",c2:"水果"},
+    {k:["胡萝卜"],ic:"🥕",s:"g",v:"可以吃",d:"富含维A，建议煮熟切块。",cat:"ok",dog:"ok",c2:"蔬菜"},
+    {k:["蛋黄"],ic:"🍳",s:"g",v:"美毛神器",d:"含卵磷脂，必须煮熟。",cat:"ok",dog:"ok",c2:"肉类"},
+    {k:["三文鱼"],ic:"🐟",s:"g",v:"亮毛神器",d:"富含Omega-3。必须煮熟。",cat:"ok",dog:"ok",c2:"海鲜"},
+    {k:["牛肉"],ic:"🥩",s:"g",v:"强壮肌肉",d:"选瘦肉，煮熟切小块。",cat:"ok",dog:"ok",c2:"肉类"},
+    {k:["鸭肉"],ic:"🦆",s:"g",v:"降火好物",d:"适合易敏体质，去皮去油。",cat:"ok",dog:"ok",c2:"肉类"},
+    {k:["虾肉"],ic:"🦐",s:"g",v:"高钙补充",d:"白灼去壳去线，注意过敏。",cat:"ok",dog:"ok",c2:"海鲜"},
+    {k:["冬瓜"],ic:"🍈",s:"g",v:"利尿补水",d:"白煮去皮，适合夏天。",cat:"ok",dog:"ok",c2:"蔬菜"},
+    {k:["米饭"],ic:"🍚",s:"g",v:"补充能量",d:"白米饭适合病后恢复。",cat:"ok",dog:"ok",c2:"主食"},
+    {k:["黄瓜"],ic:"🥒",s:"g",v:"清爽补水",d:"低热量，适合肥胖宠物。",cat:"ok",dog:"ok",c2:"蔬菜"},
+    {k:["燕麦"],ic:"🥣",s:"g",v:"优质纤维",d:"纯燕麦煮熟，助消化。",cat:"ok",dog:"ok",c2:"主食"},
+    {k:["豆腐"],ic:"⬜",s:"g",v:"植物蛋白",d:"无调味煮熟，少量喂食。",cat:"ok",dog:"ok",c2:"蔬菜"},
+
+    // 警告 (w)
+    {k:["牛奶"],ic:"🥛",s:"w",v:"乳糖不耐",d:"易致腹胀拉稀，建议换羊奶。",cat:"warn",dog:"warn",c2:"其他"},
+    {k:["排骨","骨头"],ic:"🦴",s:"w",v:"仅限肉类",d:"熟骨易碎刺穿胃肠。禁给骨头。",cat:"warn",dog:"warn",c2:"肉类"},
+    {k:["香蕉"],ic:"🍌",s:"w",v:"不宜多吃",d:"糖分极高，易致肥胖软便。",cat:"warn",dog:"warn",c2:"水果"},
+    {k:["生肉"],ic:"🥩",s:"w",v:"寄生虫险",d:"可能含菌含寄生虫，慎喂。",cat:"warn",dog:"warn",c2:"肉类"},
+    {k:["蜂蜜"],ic:"🍯",s:"w",v:"糖分过高",d:"少量止咳，多食易胖，幼宠禁。",cat:"warn",dog:"warn",c2:"调味"},
+    {k:["芝士","奶酪"],ic:"🧀",s:"w",v:"盐分偏高",d:"选低盐品种，高热量不宜多。",cat:"warn",dog:"warn",c2:"其他"},
+    {k:["榴莲"],ic:"🍈",s:"w",v:"糖脂极高",d:"极易引起上火肥胖，去核。",cat:"warn",dog:"warn",c2:"水果"},
+    {k:["菠菜"],ic:"🥬",s:"w",v:"注意草酸",d:"易致结石，不可长期大量吃。",cat:"warn",dog:"warn",c2:"蔬菜"},
+    {k:["番茄"],ic:"🍅",s:"w",v:"仅限成熟",d:"青番茄有毒，只能喂少量红熟肉。",cat:"warn",dog:"warn",c2:"蔬菜"},
+    {k:["土豆"],ic:"🥔",s:"w",v:"必须煮熟",d:"生土豆含龙葵素。淀粉高。",cat:"warn",dog:"warn",c2:"蔬菜"},
+    {k:["螃蟹"],ic:"🦀",s:"w",v:"易过敏",d:"高胆固醇高盐，易消化不良。",cat:"warn",dog:"warn",c2:"海鲜"}
 ];
 
-const CATS = ["全部", "肉类", "水果", "蔬菜", "海鲜", "主食", "调味料", "其他"];
+const CATS = ["全部", "肉类", "水果", "蔬菜", "海鲜", "主食", "调味", "其他"];
 let curCat = "全部";
 
 function find(q) {
@@ -97,14 +106,13 @@ function find(q) {
     return DB.find(it => it.k.some(key => key.includes(q) || q.includes(key)));
 }
 
-// 核心修复：更新结果卡片但不强制覆盖搜索框内容
 function updateResult(item) {
     const card = document.getElementById("result-card");
     if (!item) {
         card.className = "result-card idle";
         document.getElementById("ri").textContent = "🤔";
         document.getElementById("rv").textContent = "未找到该食物";
-        document.getElementById("rd").textContent = "暂无该数据，建议不要给毛孩子尝试不确定的食物。";
+        document.getElementById("rd").textContent = "建议不要喂食不确定的食物。";
         document.getElementById("rt").innerHTML = "";
         return;
     }
@@ -116,35 +124,24 @@ function updateResult(item) {
     document.getElementById("rt").innerHTML = `<span class="ptag">🐱 ${icon(item.cat)}</span><span class="ptag">🐶 ${icon(item.dog)}</span>`;
 }
 
-// 搜索框输入事件：只更新结果，不回填输入框
 document.getElementById("search").addEventListener("input", function() {
     if (!this.value.trim()) {
-        const card = document.getElementById("result-card");
-        card.className = "result-card idle";
+        document.getElementById("result-card").className = "result-card idle";
         document.getElementById("ri").textContent = "🐶🐱";
         document.getElementById("rv").textContent = "等待查询...";
-        document.getElementById("rd").textContent = "请输入食材或菜名，实时获取科学喂养建议。";
+        document.getElementById("rd").textContent = "请输入食材或人类菜名查询。";
         document.getElementById("rt").innerHTML = "";
         return;
     }
     updateResult(find(this.value));
 });
 
-// 点击列表项：回填输入框并收起键盘
-function selectFood(item) {
-    document.getElementById("search").value = item.k[0];
-    updateResult(item);
-    document.getElementById("search").blur();
-}
-
-// 列表显隐切换
 document.getElementById("toggle-list").onclick = function() {
     const grid = document.getElementById("food-grid");
     const isHidden = grid.classList.toggle("hidden");
     this.textContent = isHidden ? "展开全部▼" : "收起列表▲";
 };
 
-// 分类渲染
 const tabs = document.getElementById("cat-tabs");
 CATS.forEach(c => {
     const btn = document.createElement("div");
@@ -169,7 +166,11 @@ function renderGrid() {
         const p = document.createElement("div");
         p.className = "food-pill " + (item.s === "d" ? "d" : "");
         p.textContent = item.ic + " " + item.k[0];
-        p.onclick = () => selectFood(item);
+        p.onclick = () => {
+            document.getElementById("search").value = item.k[0];
+            updateResult(item);
+            document.getElementById("search").blur();
+        };
         grid.appendChild(p);
     });
 }
